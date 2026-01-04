@@ -4,7 +4,6 @@ import subprocess
 import json
 import os
 
-
 class txt:
   # Colors
   green = '\033[92m'
@@ -22,7 +21,17 @@ class txt:
 
 
 
-def infra_changes(tgplan):
+def infra_changes(tgplan: str) -> list:
+  '''
+  Function reads terragrunt plan output and detects if something has changed.
+  It returns a list of affected hosts o an empty list.
+  
+  :param tgplan: File name of terragrunt plan in json format
+  :type tgplan: str
+  :return: List of affected hosts
+  :rtype: list
+  '''
+
   try:
     with open(tgplan) as f:
       contents = json.load(f)
@@ -38,13 +47,33 @@ def infra_changes(tgplan):
     print(f"{txt.no_entry} {txt.bold}{txt.red} [ ansible_hook ]: {e.filename} not found: {e.strerror}{txt.normal}")
     sys.exit(1)
 
-def run_ansible(playbook, inventory, extra_vars=None, affected_hosts=[]):
+def run_ansible(
+    playbook: str, 
+    inventory: str, 
+    extra_vars: str | None = None, 
+    affected_hosts: list[str] | None = None
+  ) -> None:
+  '''
+  Function executes ansible-playbook command with parameters based on input data.
+  It supports injecting extra variables file (must be a json file) and can limit inventory
+  to a list of particular hosts
+
+  :param playbook: Playbook file with tasks to execute
+  :type playbook: str
+  :param inventory: Inventory file with target hosts
+  :type inventory: str
+  :param extra_vars: JSON file with variables required by provided playbook
+  :type extra_vars: str | None
+  :param affected_hosts: List of target hosts where playbook tasks will be executed
+  :type affected_hosts: list[str] | None
+  '''
+
   cmd = ["ansible-playbook", "-i", inventory]
   
   if extra_vars:
     cmd.extend(["--extra-vars", f"@{extra_vars}"])
 
-  if len(affected_hosts) > 0:
+  if affected_hosts > 0:
     cmd.extend(["--limit", ','.join(affected_hosts)])
   cmd.append(playbook)
   print(cmd)
