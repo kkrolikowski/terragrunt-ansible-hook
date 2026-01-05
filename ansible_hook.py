@@ -73,7 +73,7 @@ def run_ansible(
   if extra_vars:
     cmd.extend(["--extra-vars", f"@{extra_vars}"])
 
-  if affected_hosts > 0:
+  if affected_hosts:
     cmd.extend(["--limit", ','.join(affected_hosts)])
   cmd.append(playbook)
   print(cmd)
